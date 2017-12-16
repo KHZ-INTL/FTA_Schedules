@@ -8,6 +8,7 @@ Dependencies
 
 
 This is still in development stage, not all features are implemented.
+###Please insert your FTA Alias into the "alias" variable the very top. 
 
 Features- implemented:
  - Fetch and display client's schedules using FTA Alias on CLI
