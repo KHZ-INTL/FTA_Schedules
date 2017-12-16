@@ -1,7 +1,7 @@
 # FTA_Schedules
 A python script that checks/shows your weekly FTA flight schedules. 
 
-Dependancies
+Dependencies
 - Requests
 - BeautifulSoup
 - sqlite3
