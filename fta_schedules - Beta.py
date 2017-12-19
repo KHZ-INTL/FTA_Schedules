@@ -73,7 +73,6 @@ def parse_data(data):
 
     soup = BeautifulSoup(data.text, 'html.parser')
     table = soup.find("table")
-    table = soup.find("table")
     table_rows = table.find_all("tr")
 
     for tr in table_rows:
@@ -91,9 +90,6 @@ def parse_data(data):
             if d in str(i):
                 index.append((rowb.index(i)))
 
-    print("Row 1: ", row)
-    print("Row B: ", rowb)
-    print("Index: ", index)
     for a in index:
         date_day = rowb[a].split("-", 2)
         in_vars["day"] = str(date_day[0].replace(" ", ""))
