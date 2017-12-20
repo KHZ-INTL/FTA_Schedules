@@ -22,9 +22,9 @@ Features- implemented:
  - Fetch and display client's schedules using FTA Alias on CLI
  - Base database structure for future imports of schedules
  - Get schedules with cookies, reduce cookie handling on server side.
+ - Transfer data from html to Database
 
 Features to implement:
- - Transfer data from html to Database
  - Sort flights based on day, time, date
  - Check schedules automatically on set intervals (probably, every 30minutes), utilising last checked timestamp in db.
  - User Interface implementations: 
