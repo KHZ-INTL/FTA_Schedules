@@ -2,6 +2,10 @@ import requests
 from bs4 import BeautifulSoup
 import sqlite3
 import os
+import datetime
+import dateutil.parser
+
+
 
 #Insert your FTA-Alias: e.g = myname7126
 alias = ""
@@ -11,7 +15,7 @@ get_session = requests.Session()
 
 
 try:
-    db_conn = sqlite3.connect('db_FTA_Schedules.db')
+    db_conn = sqlite3.connect('C:/Users/khz13/Desktop/Projects/db_FTA_Schedules.db', detect_types=sqlite3.PARSE_DECLTYPES)
     db_cursor = db_conn.cursor()
 except sqlite3.Error as e:
     print(e)
@@ -20,9 +24,7 @@ except sqlite3.Error as e:
 #db Initialisation
 with db_conn:
     try:
-       db_cursor.execute('''CREATE TABLE IF NOT EXISTS FTA_Schedules(DATE Text NOT NULL,
-                                                      DAY TEXT NOT NULL,
-                                                       PLANTIME TEXT NOT NULL,
+       db_cursor.execute('''CREATE TABLE IF NOT EXISTS FTA_Schedules(DATE TEXT NOT NULL,
                                                        CAPITAN TEXT NOT NULL,
                                                        CREW TEXT NOT NULL,
                                                        AIRCRAFT TEXT NOT NULL,
@@ -44,6 +46,15 @@ with db_conn:
 def cls():
 	os.system('CLS')
 	return
+
+
+def format_date(data, way):
+    if way == "iso":
+        date = datetime.datetime.strptime(data, "%d/%m/%y %H:%M").isoformat()
+        return date 
+    elif way == "display":
+        date = datetime.datetime.strptime(data, "%Y-%m-%dT%H:%M:%S")
+    return date
 
 
 def update_schedules():
@@ -71,7 +82,7 @@ def parse_data(data):
 
     day = ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATUARDAY", "SUNDAY"]
     rem = ["Time", "Captain", "Crew", "Aircraft", "Module", "Exercise", "Description", "Fly Type"]
-    in_vars = {"DATE": "", "DAY": "", "PLANTIME": "", "CAPITAN": "", "CREW": "", "AIRCRAFT": "", "MODULE": "", "EXCERCISE": "", "DESCRIPTION": "", "FLY_TYPE": ""}
+    in_vars = {"DATE": "", "CAPITAN": "", "CREW": "", "AIRCRAFT": "", "MODULE": "", "EXCERCISE": "", "DESCRIPTION": "", "FLY_TYPE": ""}
     row = []
     rowb = []
     index = []
@@ -99,12 +110,11 @@ def parse_data(data):
     #print("Row B: ", rowb)
     #print("Index: ", index)
     for a in index:
-        date_day = rowb[a].split("-", 2)
-        in_vars["DAY"] = str(date_day[0].replace(" ", ""))
-        in_vars["DATE"] = str(date_day[1].replace(" ", ""))
+        date_time = rowb[a].split("-", 2)[1].replace(" ", "")
+        date_time = date_time + " "+ rowb[a+1]
+        in_vars["DATE"] = str(format_date(date_time, "iso"))
 
         if  ":" in rowb[(a+1)]:
-            in_vars["PLANTIME"] = rowb[(a+1)]
             in_vars["CAPITAN"] = rowb[(a+2)]
             in_vars["CREW"] = rowb[(a+3)]
             in_vars["AIRCRAFT"] = rowb[(a+4)]
@@ -123,7 +133,7 @@ def update_db(data):
     #Check if data is valid before comitting to db
     for k, v in data.items():
         if len(v) <1 or v == " ":
-            print("Invalid Data for Flight: ", data["DATE"], "  -  ", data["PLANTIME"], "\n", "- ", k, ": ", v,"\n", )
+            print("Invalid Data for Flight: ", data["DATE"], "  -  ", data["DATE"], "\n", "- ", k, ": ", v,"\n", )
             break
     
     for key, value in data.items():
@@ -133,16 +143,20 @@ def update_db(data):
     if sqlquery.rsplit(None, 1)[-1] == "AND":
         sqlquery = sqlquery.rsplit(None, 1)[0]
         with db_conn:
-            retcurs = db_cursor.execute(sqlquery)
+            try:
+                retcurs = db_cursor.execute(sqlquery)
+            except sqlite3.Error as e:
+                print(e)
+            
         rows = 0
         for row in retcurs:
             rows +=1
         if rows >=1:
-            print("Flight Scheduled on: ", data["DATE"], "  -  Time: ", data["PLANTIME"], "Already exist \n")
+            print("Flight Scheduled on: ", data["DATE"], "  -  Time: ", data["DATE"], "Already exist \n")
         else:
             with db_conn:
                 try:
-                    db_cursor.execute("INSERT INTO FTA_Schedules (DATE, DAY, PLANTIME, CAPITAN, CREW, AIRCRAFT, MODULE, EXCERCISE, DESCRIPTION, FLY_TYPE) VALUES ('{}', '{}', '{}','{}', '{}', '{}','{}', '{}', '{}', '{}')".format(data["DATE"], data["DAY"], data["PLANTIME"], data["CAPITAN"], data["CREW"], data["AIRCRAFT"], data["MODULE"], data["EXCERCISE"], data["DESCRIPTION"], data["FLY_TYPE"]))
+                    db_cursor.execute("INSERT INTO FTA_Schedules (DATE, CAPITAN, CREW, AIRCRAFT, MODULE, EXCERCISE, DESCRIPTION, FLY_TYPE) VALUES ('{}','{}', '{}', '{}','{}', '{}', '{}', '{}')".format(data["DATE"], data["CAPITAN"], data["CREW"], data["AIRCRAFT"], data["MODULE"], data["EXCERCISE"], data["DESCRIPTION"], data["FLY_TYPE"]))
                     db_conn.commit()
                 except sqlite3.Error as e:
                     print(e)
@@ -152,18 +166,31 @@ def update_db(data):
 
 
 def display():
-	cls()
-	with db_conn:
-		try:
-			items = db_cursor.execute("SELECT * FROM FTA_Schedules")
-			for i in items:
-				print(110*"-")
-				print("| ", i,  15*" ", "|")
-				print(110*"-")
-				print("\n")
-		except sqlite3.OperationalError as e:
-			print(e)
-	return "a"
+    week_schedules = {}
+    cls()
+    with db_conn:
+        try:
+            items = db_cursor.execute("SELECT * FROM FTA_Schedules ORDER BY datetime(DATE) ASC")
+        except sqlite3.OperationalError as e:
+            print(e)
+    for i in items:
+        dt = format_date(i[0], "display")
+        for k, v in week_schedules.items():
+            if dt.strftime("%d/%M/Y%") == k:
+                for key, value in v.items():
+                    if dt.strftime("%H:%M") == key["time"]:
+                        continue
+            else:
+                week_schedules[dt.strftime("%H:%M")] = {"TIME":"{}", "CAPITAN": "{}", "CREW": "{}", "AIRCRAFT": "{}", "MODULE": "{}", "EXCERCISE": "{}", "DESCRIPTION": "{}", "FLY_TYPE": "{}".format(dt.strftime("%H:%M"), i[1], i[2], i[3], i[4], i[5], i[6]. i[7] )}
+                print(week_schedules, len(week_schedules))
+    for k, v in week_schedules.items():
+        print(110*"-")
+        print(str(k)+ "\n")
+        for key, value in v.items():
+            print("--: ", str(k))
+
+    
+    return
 
 
 if __name__ == "__main__":
