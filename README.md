@@ -20,7 +20,6 @@ Features- implemented:
  - Get schedules with cookies, reduce cookie handling on server side.
 
 Features to implement:
- - Transfer data from html to Database
  - Sort flights based on day, time, date
  - Check schedules automatically on set intervals (probably, every 30minutes), utilising last checked timestamp in db.
  - User Interface implementations: 
