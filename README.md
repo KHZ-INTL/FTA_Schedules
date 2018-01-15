@@ -26,7 +26,5 @@ Features to implement:
  - Check schedules automatically on set intervals (probably, every 30minutes), utilising last checked timestamp in db.
  - User Interface implementations: 
    - Notifications
-   - Rain Meter UI plugin
- - If possible, Cortana implementation (voice commands):
-    - Ask for next flight and associated flight details.
+
  
