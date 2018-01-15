@@ -14,7 +14,7 @@ This is still in development stage, not all features are implemented.
 Please insert your FTA Alias into the "alias" variable the very top of python file. 
 
 # Screenshot
-![Screenshot1 tag](https://github.com/KHZ-INTL/FTA_Schedules/blob/master/flyfta.PNG)
+![Screenshot1 tag](https://github.com/KHZ-INTL/FTA_Schedules/blob/master/flyfta.png)
 
 Features- implemented:
  - Fetch and display client's schedules using FTA Alias on CLI
